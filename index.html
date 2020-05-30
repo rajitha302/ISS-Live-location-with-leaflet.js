@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Json Data Handling</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+        integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+        crossorigin="" />
+
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+        integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+        crossorigin=""></script>
+</head>
+
+<body>
+
+    <h1>Iss Position</h1>
+    <p>latitude: <span id="lat"></span>° <br>
+        longitude: <span id="lon"></span>°
+    </p>
+
+    <div id="mapid" style="height: 50vh;"></div>
+
+    <script>
+        // config. map & tiles
+        const mymap = L.map('mapid').setView([0, 0], 1);
+        const attribution =
+            '&copy; <a href="https://www.openstreetmap.org/copyright">openstreet map</a> contributors';
+        const tileUrl = 'https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png';
+        const tiles = L.tileLayer(tileUrl, {
+            attribution
+        });
+        tiles.addTo(mymap);
+
+        // adding a custom map marker
+        const myIcon = L.icon({
+            iconUrl: 'my-icon.png',
+            iconSize: [80, 80],
+            iconAnchor: [40, 40],
+            popupAnchor: [-3, -76]
+        });
+
+        const marker = L.marker([0, 0], {
+            icon: myIcon
+        }).addTo(mymap);
+
+
+
+
+
+        const api_url = 'https://api.wheretheiss.at/v1/satellites/25544';
+
+
+        let firstTimeView = true;
+
+        async function getIss() {
+            const response = await fetch(api_url);
+            const data = await response.json();
+            const {
+                latitude,
+                longitude
+            } = data;
+
+            marker.setLatLng([latitude, longitude]);
+            if (firstTimeView) {
+                mymap.setView([latitude, longitude], 3);
+
+                firstTimeView = false;
+            }
+
+            document.getElementById('lat').textContent = latitude.toFixed(2);
+            document.getElementById('lon').textContent = longitude.toFixed(2);
+        }
+        getIss();
+
+        setInterval(getIss, 1000);
+    </script>
+</body>
+
+</html>
